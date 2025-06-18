@@ -83,17 +83,18 @@ class SupabaseAuthService {
       if (res.user?.id == null) {
         return SupabaseModel(message: "User Not Found", isSuccessful: false);
       } else {
-        final data = await supaBase.from('user_list').select();
+        final data = await supaBase
+            .from('user_list')
+            .select()
+            .eq('id', res.user?.id ?? '');
 
         SharedPreferenceService sharedPreferenceService =
             SharedPreferenceService();
         for (var dt in data) {
-          if (dt['id'] == res.user!.id) {
-            await sharedPreferenceService.saveUserId(dt['id']);
-            await sharedPreferenceService.saveUserName(dt['name']);
-            await sharedPreferenceService.saveUserEmail(dt['email']);
-            await sharedPreferenceService.saveUserImage(dt['image_url']);
-          }
+          await sharedPreferenceService.saveUserId(dt['id']);
+          await sharedPreferenceService.saveUserName(dt['name']);
+          await sharedPreferenceService.saveUserEmail(dt['email']);
+          await sharedPreferenceService.saveUserImage(dt['image_url']);
         }
 
         return SupabaseModel(
