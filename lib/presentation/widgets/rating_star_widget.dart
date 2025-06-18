@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 class RatingStarWidget extends StatefulWidget {
-  final bool isShowRateText;
   final double spacing;
   final double iconSize;
 
   const RatingStarWidget({
     super.key,
-    this.isShowRateText = true,
     this.spacing = 2,
     this.iconSize = 24,
   });
@@ -37,13 +35,6 @@ class _RatingStarWidgetState extends State<RatingStarWidget> {
               size: widget.iconSize,
             ),
           ),
-
-        widget.isShowRateText
-            ? Text(
-                _currentRate == 5 ? "0.0" : "${5 - _currentRate}.0",
-                style: TextStyle(fontSize: 16),
-              )
-            : SizedBox(),
       ],
     );
   }

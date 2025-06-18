@@ -194,7 +194,7 @@ class _ShareScreenState extends State<ShareScreen> {
             Row(
               children: [
                 Text("Rating", style: TextStyle(fontSize: 16)),
-                RatingStarWidget(isShowRateText: false, iconSize: 20,),
+                RatingStarWidget(iconSize: 20,),
                 SizedBox(width: 4),
               ],
             ),

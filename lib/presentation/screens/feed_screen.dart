@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_app/models/post_model.dart';
 import 'package:task_app/presentation/screens/log_in_screen.dart';
 import 'package:task_app/presentation/screens/share_screen.dart';
 import 'package:task_app/presentation/widgets/post_widget.dart';
@@ -127,7 +128,27 @@ class _FeedScreenState extends State<FeedScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Image.asset('assets/images/airline.png'),
             ),
-            PostWidget(),
+            PostWidget(
+              postModel: PostModel(
+                isLiked: true,
+                captions:
+                    "This reference documents every object and method available in Supabase's Flutter library, supabase-flutter. You can use supabase-flutter to interact with your Postgres database, listen to database changes, invoke Deno Edge Functions, build login and user management functionality, and manage large files."
+                    "We also provide a supabase package for non-Flutter projects.",
+                images: [],
+                userId: 'userId',
+                commentsId: [],
+                uploadTime:
+                    '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                departureAirport: 'Dhaka',
+                arrivalAirport: 'Sylhet',
+                airline: 'BD Airline',
+                classAirline: 'First Class',
+                travelDate: "16 Novermber, 2025",
+                likesCount: 15,
+                commentsCount: 20,
+                ratings: 3,
+              ),
+            ),
           ],
         ),
       ),

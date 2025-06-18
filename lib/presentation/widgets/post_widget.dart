@@ -1,9 +1,11 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
-import 'package:task_app/presentation/widgets/rating_star_widget.dart';
+import 'package:task_app/models/post_model.dart';
 
 class PostWidget extends StatefulWidget {
-  const PostWidget({super.key});
+  final PostModel postModel;
+
+  const PostWidget({super.key, required this.postModel});
 
   @override
   State<PostWidget> createState() => _PostWidgetState();
@@ -37,33 +39,54 @@ class _PostWidgetState extends State<PostWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Amit Banik Surjo", style: TextStyle(fontSize: 16)),
-            Text("1 day ago", style: TextStyle(fontSize: 16)),
+            Text(widget.postModel.uploadTime, style: TextStyle(fontSize: 16)),
           ],
         ),
         Spacer(),
-        RatingStarWidget(),
+        Row(
+          children: [
+            for (int i = 4; i >= 0; i--)
+              Icon(
+                5 - widget.postModel.ratings <= i
+                    ? Icons.star
+                    : Icons.star_outline,
+                color: Colors.yellow,
+                size: 24,
+              ),
+            Text(
+              "${widget.postModel.ratings}.0",
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _label() {
-    List list = ["LHR-DEL", "Air India", "Business Class", "July 2023"];
-    return FittedBox(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 8,
-        children: [
-          for (int i = 0; i < 4; i++)
-            Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(list[i]),
+    List list = [
+      widget.postModel.departureAirport,
+      widget.postModel.arrivalAirport,
+      widget.postModel.airline,
+      widget.postModel.classAirline,
+      widget.postModel.travelDate,
+    ];
+    return Wrap(
+      alignment: WrapAlignment.start,
+      runAlignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (int i = 0; i < 4; i++)
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(8),
             ),
-        ],
-      ),
+            child: Text(list[i]),
+          ),
+      ],
     );
   }
 
@@ -72,10 +95,9 @@ class _PostWidgetState extends State<PostWidget> {
       spacing: 12,
       children: [
         ExpandableText(
-          "Flutter is an open-source UI software development kit created by Google. It can be used to develop cross platform applications from a single codebase for the web,[4] Fuchsia, Android, iOS, Linux, macOS, and Windows.[5] First described in 2015,[6][7] Flutter was released in May 2017. Flutter is used internally by Google in apps such as Google Pay[8][9] and Google Earth[10][11] as well as by other software developers including ByteDance[12][13] and Alibaba.[14][15]"
-          "Flutter ships applications with its own rendering engine which directly outputs pixel data to the screen.[16][17] This is in contrast to many other UI frameworks that rely on the target platform to provide a rendering engine, such as native Android apps which rely on the device-level Android SDK or IOS SDK which use the target platform's built-in UI stack. Flutter's control of its rendering pipeline simplifies multi-platform support as identical UI code can be used for all target platforms",
-          expandText: 'See More',
-          collapseText: 'See Less',
+          widget.postModel.captions,
+          expandText: '\n\nSee More',
+          collapseText: '\n\nSee Less',
           maxLines: 10,
           animation: true,
           animationDuration: Duration(milliseconds: 300),
@@ -92,9 +114,15 @@ class _PostWidgetState extends State<PostWidget> {
         Row(
           spacing: 16,
           children: [
-            Text("30 Like", style: TextStyle(fontSize: 20)),
+            Text(
+              "${widget.postModel.likesCount} Like",
+              style: TextStyle(fontSize: 20),
+            ),
             Icon(Icons.circle, size: 4, color: Colors.grey),
-            Text("20 Comments", style: TextStyle(fontSize: 20)),
+            Text(
+              "${widget.postModel.commentsCount} Comments",
+              style: TextStyle(fontSize: 20),
+            ),
           ],
         ),
       ],
