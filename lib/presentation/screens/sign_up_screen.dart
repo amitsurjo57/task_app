@@ -121,10 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Visibility(
       visible: !_inProgress,
       replacement: Center(child: CircularProgressIndicator()),
-      child: ElevatedButton(
-        onPressed: _onTapSignUp,
-        child: Text("Sign Up"),
-      ),
+      child: ElevatedButton(onPressed: _onTapSignUp, child: Text("Sign Up")),
     );
   }
 
@@ -227,25 +224,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-
-  // Widget _pickImage() {
-  //   return TextFormField(
-  //     onTap: _onTapPickImage,
-  //     controller: _pickImageController,
-  //     cursorColor: Colors.black,
-  //     readOnly: true,
-  //     decoration: InputDecoration(
-  //       hint: Center(
-  //         child: Text("Pick Your Image", style: TextStyle(fontSize: 20)),
-  //       ),
-  //       prefixIcon: Icon(Icons.image_outlined, color: Colors.black, size: 28),
-  //     ),
-  //     validator: (value){
-  //       if (value == null || value.isEmpty) {
-  //         return "Pick Your Photo";
-  //       }
-  //       return null;
-  //     },
-  //   );
-  // }
 }
