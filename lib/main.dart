@@ -49,6 +49,9 @@ class _MyAppState extends State<MyApp> {
       home: _chooseFeed ? FeedScreen() : LogInScreen(),
       theme: ThemeData(
         scaffoldBackgroundColor: Color(0xFFF0F2F6),
+        drawerTheme: DrawerThemeData(
+          backgroundColor: Color(0xFFF0F2F6),
+        ),
         appBarTheme: AppBarTheme(backgroundColor: Colors.white),
         iconTheme: IconThemeData(color: Colors.black),
         inputDecorationTheme: InputDecorationTheme(

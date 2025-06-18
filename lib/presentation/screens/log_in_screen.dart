@@ -92,10 +92,7 @@ class _LogInScreenState extends State<LogInScreen> {
     return Visibility(
       visible: !_inProgress,
       replacement: Center(child: CircularProgressIndicator()),
-      child: ElevatedButton(
-        onPressed: _onTapLogIn,
-        child: Text("Log In"),
-      ),
+      child: ElevatedButton(onPressed: _onTapLogIn, child: Text("Log In")),
     );
   }
 
@@ -114,12 +111,14 @@ class _LogInScreenState extends State<LogInScreen> {
             });
           },
           child: Icon(
-            _isObscure ? Icons.visibility : Icons.visibility_off,
+            _isObscure
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             size: 28,
             color: Colors.black,
           ),
         ),
-        prefixIcon: Icon(Icons.lock, size: 32, color: Colors.black),
+        prefixIcon: Icon(Icons.lock_outline, size: 32, color: Colors.black),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -139,7 +138,7 @@ class _LogInScreenState extends State<LogInScreen> {
       cursorColor: Colors.black,
       decoration: InputDecoration(
         hintText: "Enter Your Email",
-        prefixIcon: Icon(Icons.person, size: 32, color: Colors.black),
+        prefixIcon: Icon(Icons.email_outlined, size: 32, color: Colors.black),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {

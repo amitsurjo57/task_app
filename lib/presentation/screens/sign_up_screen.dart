@@ -140,12 +140,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
             });
           },
           child: Icon(
-            _isObscure ? Icons.visibility : Icons.visibility_off,
+            _isObscure
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
             size: 28,
             color: Colors.black,
           ),
         ),
-        prefixIcon: Icon(Icons.lock, size: 32, color: Colors.black),
+        prefixIcon: Icon(Icons.lock_outline, size: 32, color: Colors.black),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -165,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       cursorColor: Colors.black,
       decoration: InputDecoration(
         hintText: "Enter Your Name",
-        prefixIcon: Icon(Icons.person, size: 32, color: Colors.black),
+        prefixIcon: Icon(Icons.person_outline, size: 32, color: Colors.black),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -184,7 +186,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       cursorColor: Colors.black,
       decoration: InputDecoration(
         hintText: "Enter Your Email",
-        prefixIcon: Icon(Icons.person, size: 32, color: Colors.black),
+        prefixIcon: Icon(Icons.email_outlined, size: 32, color: Colors.black),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
