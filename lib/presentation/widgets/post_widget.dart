@@ -1,6 +1,9 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:task_app/models/post_model.dart';
+import 'package:task_app/presentation/widgets/facebook_photo_collage.dart';
+
+import '../../main.dart';
 
 class PostWidget extends StatefulWidget {
   final PostModel postModel;
@@ -13,6 +16,36 @@ class PostWidget extends StatefulWidget {
 
 class _PostWidgetState extends State<PostWidget> {
   bool _isLiked = false;
+
+  String? _userName;
+  String? _userImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+  }
+
+  Future<void> _getUserData() async {
+    String postId = widget.postModel.id;
+
+    final postData = await supaBase.from('posts').select().eq('id', postId);
+
+    String userId = '';
+
+    for (var data in postData) {
+      userId = data["user_id"];
+    }
+
+    final userData = await supaBase.from('user_list').select().eq('id', userId);
+
+    for (var data in userData) {
+      _userName = data['name'];
+      _userImage = data['image_url'];
+    }
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +67,11 @@ class _PostWidgetState extends State<PostWidget> {
     return Row(
       spacing: 8,
       children: [
-        CircleAvatar(),
+        CircleAvatar(backgroundImage: NetworkImage(_userImage ?? '')),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Amit Banik Surjo", style: TextStyle(fontSize: 16)),
+            Text(_userName ?? '', style: TextStyle(fontSize: 16)),
             Text(widget.postModel.uploadTime, style: TextStyle(fontSize: 16)),
           ],
         ),
@@ -93,6 +126,7 @@ class _PostWidgetState extends State<PostWidget> {
   Widget _post() {
     return Column(
       spacing: 12,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ExpandableText(
           widget.postModel.captions,
@@ -108,21 +142,15 @@ class _PostWidgetState extends State<PostWidget> {
             fontSize: 16,
           ),
         ),
-        Image.network(
-          'https://freenaturestock.com/wp-content/uploads/freenaturestock-2285-768x1152.jpg',
+        FacebookPhotoCollage(
+          imageUrls: [for (int i = 0; i < 5; i++) widget.postModel.images[i]],
         ),
         Row(
           spacing: 16,
           children: [
-            Text(
-              "${widget.postModel.likesCount} Like",
-              style: TextStyle(fontSize: 20),
-            ),
+            Text("30 Like", style: TextStyle(fontSize: 20)),
             Icon(Icons.circle, size: 4, color: Colors.grey),
-            Text(
-              "${widget.postModel.commentsCount} Comments",
-              style: TextStyle(fontSize: 20),
-            ),
+            Text("30 Comments", style: TextStyle(fontSize: 20)),
           ],
         ),
       ],

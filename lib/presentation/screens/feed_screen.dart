@@ -6,6 +6,8 @@ import 'package:task_app/presentation/widgets/post_widget.dart';
 import 'package:task_app/service/shared_preference_service.dart';
 import 'package:task_app/service/supabase_auth_service.dart';
 
+import '../../main.dart';
+
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -14,8 +16,11 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  String? name;
-  String? image;
+
+  String? _name;
+  String? _image;
+  final _stream = supaBase.from('posts').stream(primaryKey: ['id']);
+  final List<PostWidget> _listOfPostWidget = [];
 
   @override
   void initState() {
@@ -25,8 +30,8 @@ class _FeedScreenState extends State<FeedScreen> {
 
   Future<void> _getUserData() async {
     SharedPreferenceService sharedPreferenceService = SharedPreferenceService();
-    name = await sharedPreferenceService.getUserName();
-    image = await sharedPreferenceService.getUserImage();
+    _name = await sharedPreferenceService.getUserName();
+    _image = await sharedPreferenceService.getUserImage();
     setState(() {});
   }
 
@@ -42,116 +47,135 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget _buildBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
-      child: SingleChildScrollView(
-        child: Column(
-          spacing: 16,
+      child: Column(
+        spacing: 16,
+        children: [_upperBody(context), _postBody()],
+      ),
+    );
+  }
+
+  Widget _postBody() {
+    return Expanded(
+      child: StreamBuilder(
+        stream: _stream,
+        builder: (context, snapshot) {
+          _listOfPostWidget.clear();
+
+          for (Map<String, dynamic> post in snapshot.data ?? []) {
+            _listOfPostWidget.add(
+              PostWidget(
+                postModel: PostModel(
+                  id: post['id'] ?? '',
+                  likes: List<String>.from(post['likes'] ?? []),
+                  images: List<String>.from(post['images'] ?? []),
+                  userId: post['userId'] ?? '',
+                  ratings: post['ratings'] ?? '',
+                  airline: post['airline'] ?? '',
+                  captions: post['caption'] ?? '',
+                  comments: List<String>.from(post['comments'] ?? []),
+                  classAirline: post['class'] ?? '',
+                  travelDate: post['travel_date'] ?? '',
+                  uploadTime: post['upload_time'] ?? '',
+                  arrivalAirport: post['arrival_airport'] ?? '',
+                  departureAirport: post['departure_airport'] ?? '',
+                ),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            itemCount: _listOfPostWidget.length,
+            separatorBuilder: (context, index) => SizedBox(height: 12),
+            itemBuilder: (context, index) => _listOfPostWidget[index],
+          );
+        },
+      ),
+    );
+  }
+
+  Column _upperBody(BuildContext context) {
+    return Column(
+      spacing: 16,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ShareScreen()),
-                    );
-                  },
-                  child: Container(
-                    height: 60,
-                    width: MediaQuery.sizeOf(context).width / 2 - 16,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: FittedBox(
-                      child: Row(
-                        spacing: 8,
-                        children: [
-                          Text(
-                            "Share Your Experience",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          Icon(Icons.share, color: Colors.white, size: 16),
-                        ],
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ShareScreen()),
+                );
+              },
+              child: Container(
+                height: 60,
+                width: MediaQuery.sizeOf(context).width / 2 - 16,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: FittedBox(
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      Text(
+                        "Share Your Experience",
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
+                      Icon(Icons.share, color: Colors.white, size: 16),
+                    ],
                   ),
                 ),
-                Container(
-                  height: 60,
-                  width: MediaQuery.sizeOf(context).width / 2 - 16,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: FittedBox(
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        Text(
-                          "Ask A Question",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        Icon(
-                          Icons.question_mark,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
             Container(
               height: 60,
-              width: double.infinity,
+              width: MediaQuery.sizeOf(context).width / 2 - 16,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 8,
-                children: [
-                  Text(
-                    "Search",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
-                  Icon(Icons.search, color: Colors.white),
-                ],
-              ),
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset('assets/images/airline.png'),
-            ),
-            PostWidget(
-              postModel: PostModel(
-                isLiked: true,
-                captions:
-                    "This reference documents every object and method available in Supabase's Flutter library, supabase-flutter. You can use supabase-flutter to interact with your Postgres database, listen to database changes, invoke Deno Edge Functions, build login and user management functionality, and manage large files."
-                    "We also provide a supabase package for non-Flutter projects.",
-                images: [],
-                userId: 'userId',
-                commentsId: [],
-                uploadTime:
-                    '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                departureAirport: 'Dhaka',
-                arrivalAirport: 'Sylhet',
-                airline: 'BD Airline',
-                classAirline: 'First Class',
-                travelDate: "16 Novermber, 2025",
-                likesCount: 15,
-                commentsCount: 20,
-                ratings: 3,
+              child: FittedBox(
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    Text(
+                      "Ask A Question",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Icon(Icons.question_mark, color: Colors.white, size: 16),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-      ),
+        Container(
+          height: 60,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 8,
+            children: [
+              Text(
+                "Search",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              Icon(Icons.search, color: Colors.white),
+            ],
+          ),
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset('assets/images/airline.png'),
+        ),
+      ],
     );
   }
 
@@ -186,7 +210,7 @@ class _FeedScreenState extends State<FeedScreen> {
       actions: [
         IconButton(onPressed: () {}, icon: Icon(Icons.notifications_outlined)),
         CircleAvatar(
-          backgroundImage: image == null ? null : NetworkImage(image!),
+          backgroundImage: _image == null ? null : NetworkImage(_image!),
         ),
         Builder(
           builder: (context) {

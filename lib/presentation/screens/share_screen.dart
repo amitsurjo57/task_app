@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:simple_month_year_picker/simple_month_year_picker.dart';
 import 'package:task_app/data/utils/travel_items_list.dart';
 import 'package:task_app/presentation/widgets/my_search_anchor.dart';
-import 'package:task_app/presentation/widgets/rating_star_widget.dart';
+import 'package:task_app/service/supabase_post_service.dart';
 
 class ShareScreen extends StatefulWidget {
   const ShareScreen({super.key});
@@ -24,7 +24,9 @@ class _ShareScreenState extends State<ShareScreen> {
   final SearchController _airLineSearchController = SearchController();
   final SearchController _classSearchController = SearchController();
 
-  List<String> sugCity = [];
+  List<XFile?> _images = [];
+  int _currentRate = 0;
+  bool _inProgress = false;
 
   @override
   void dispose() {
@@ -39,13 +41,20 @@ class _ShareScreenState extends State<ShareScreen> {
   }
 
   Future<void> _onTapPickImage() async {
+    _images.clear();
+
     final ImagePicker picker = ImagePicker();
 
-    List<XFile?> images = await picker.pickMultiImage();
+    _images = await picker.pickMultiImage();
 
-    for (var img in images) {
-      debugPrint("${img?.path}");
+    for (XFile? img in _images) {
+      if (img != null) {
+        var size = await img.length() / (1024 * 1024);
+        debugPrint("Name: ${img.name} Size: ${size.toStringAsFixed(2)}");
+      }
     }
+
+    setState(() {});
   }
 
   Future<void> _onTapTravelDate() async {
@@ -53,12 +62,55 @@ class _ShareScreenState extends State<ShareScreen> {
         await SimpleMonthYearPicker.showMonthYearPickerDialog(
           context: context,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
         );
 
     _travelDateController.text = dateTime.month.toString().length == 1
         ? "0${dateTime.month} - ${dateTime.year}"
         : "${dateTime.month} - ${dateTime.year}";
+  }
+
+  Future<void> _onTapSubmit() async {
+    if (_departureAirportsSearchController.text.isEmpty &&
+        _arrivalAirportsSearchController.text.isEmpty &&
+        _airLineSearchController.text.isEmpty &&
+        _classSearchController.text.isEmpty &&
+        _messageController.text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("You have to choose all options")),
+        );
+        return;
+      }
+    }
+
+    _inProgress = true;
+    setState(() {});
+    final supabaseModel = await SupabasePostService.post(
+      captions: _messageController.text,
+      departureAirport: _departureAirportsSearchController.text,
+      arrivalAirport: _arrivalAirportsSearchController.text,
+      airline: _airLineSearchController.text,
+      classAirline: _classSearchController.text,
+      travelDate: _travelDateController.text,
+      ratings: _currentRate,
+      images: _images,
+    );
+    _inProgress = false;
+    setState(() {});
+
+    if (supabaseModel.isSuccessful) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(supabaseModel.message)));
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(supabaseModel.message)));
+      }
+    }
   }
 
   @override
@@ -106,16 +158,29 @@ class _ShareScreenState extends State<ShareScreen> {
             color: Colors.grey,
           ),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.image_outlined, size: 52),
-                Text(
-                  "Pick Your Image Here",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+            child: _images.isEmpty
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.image_outlined, size: 52),
+                      Text(
+                        "Pick Your Image Here",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView.builder(
+                    itemCount: _images.length,
+                    itemBuilder: (context, index) {
+                      return Text(
+                        _images[index]?.name ?? '',
+                        style: TextStyle(fontSize: 16),
+                      );
+                    },
+                  ),
           ),
         ),
       ),
@@ -129,22 +194,22 @@ class _ShareScreenState extends State<ShareScreen> {
         MySearchAnchor(
           hintText: "Departure Airport",
           searchController: _departureAirportsSearchController,
-          itemList: TravelItemsLists.airports,
+          itemList: TravelItemsLists.departureArrivalAirports,
         ),
         MySearchAnchor(
           hintText: "Arrival Airport",
           searchController: _arrivalAirportsSearchController,
-          itemList: TravelItemsLists.airports,
+          itemList: TravelItemsLists.departureArrivalAirports,
         ),
         MySearchAnchor(
           hintText: "Airline",
           searchController: _airLineSearchController,
-          itemList: TravelItemsLists.airports,
+          itemList: TravelItemsLists.airlines,
         ),
         MySearchAnchor(
           hintText: "Class",
           searchController: _classSearchController,
-          itemList: TravelItemsLists.airports,
+          itemList: TravelItemsLists.classAirline,
         ),
         TextField(
           controller: _messageController,
@@ -160,6 +225,7 @@ class _ShareScreenState extends State<ShareScreen> {
               borderRadius: BorderRadius.circular(25),
             ),
             hintText: "Write Your Message",
+            hintStyle: TextStyle(color: Colors.grey.shade700),
             filled: true,
             fillColor: Theme.of(context).scaffoldBackgroundColor,
           ),
@@ -194,21 +260,42 @@ class _ShareScreenState extends State<ShareScreen> {
             Row(
               children: [
                 Text("Rating", style: TextStyle(fontSize: 16)),
-                RatingStarWidget(iconSize: 20,),
+                Row(
+                  spacing: 2,
+                  children: [
+                    for (int i = 4; i >= 0; i--)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _currentRate = i;
+                          });
+                        },
+                        child: Icon(
+                          _currentRate <= i ? Icons.star : Icons.star_outline,
+                          color: Colors.yellow,
+                          size: 24,
+                        ),
+                      ),
+                  ],
+                ),
                 SizedBox(width: 4),
               ],
             ),
           ],
         ),
-        ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            alignment: Alignment.center,
-            minimumSize: Size(100, 50),
+        Visibility(
+          visible: !_inProgress,
+          replacement: CircularProgressIndicator(),
+          child: ElevatedButton(
+            onPressed: _onTapSubmit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              alignment: Alignment.center,
+              minimumSize: Size(100, 50),
+            ),
+            child: Text("Submit"),
           ),
-          child: Text("Submit"),
         ),
       ],
     );

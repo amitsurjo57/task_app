@@ -39,6 +39,7 @@ dependencies:
   expandable_text: 2.3.0
   supabase_flutter: ^2.9.1
   shared_preferences: ^2.5.3
+  cached_network_image: ^3.4.1
   font_awesome_flutter: ^10.8.0
   simple_month_year_picker: ^1.1.0
 

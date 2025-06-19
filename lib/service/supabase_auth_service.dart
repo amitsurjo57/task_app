@@ -22,9 +22,9 @@ class SupabaseAuthService {
       final userProfile = File(imageFile?.path ?? "");
 
       await supaBase.storage
-          .from('user-profiles-picture')
+          .from('user-files')
           .upload(
-            imageFile?.name ?? "",
+            "${res.user?.id ?? ''}/profile picture/${imageFile?.name ?? ""}",
             userProfile,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
           );
