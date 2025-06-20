@@ -87,6 +87,7 @@ class _FeedScreenState extends State<FeedScreen> {
       pinned: false,
       floating: false,
       flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.parallax,
         background: Column(
           spacing: 16,
           children: [

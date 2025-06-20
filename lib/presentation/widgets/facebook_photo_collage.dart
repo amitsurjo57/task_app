@@ -8,7 +8,7 @@ class FacebookPhotoCollage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) {
-      return const SizedBox.shrink();
+      return const SizedBox();
     }
 
     if (imageUrls.length == 1) {
@@ -48,7 +48,9 @@ class FacebookPhotoCollage extends StatelessWidget {
               imageUrl,
               fit: fit ?? BoxFit.cover,
               loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
+                if (loadingProgress == null) {
+                  return child;
+                }
                 return Center(child: CircularProgressIndicator());
               },
             ),

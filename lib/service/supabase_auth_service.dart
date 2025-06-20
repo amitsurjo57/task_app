@@ -30,8 +30,12 @@ class SupabaseAuthService {
           );
 
       final String imageUrl = supaBase.storage
-          .from('user-profiles-picture')
-          .getPublicUrl(imageFile?.name ?? "");
+          .from('user-files')
+          .getPublicUrl(
+            "${res.user?.id ?? ''}/profile picture/${imageFile?.name ?? ""}",
+          );
+
+      debugPrint("User Profile URL: $imageUrl");
 
       await supaBase.from('user_list').insert({
         'id': res.user?.id ?? " ",

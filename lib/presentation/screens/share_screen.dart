@@ -2,7 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:simple_month_year_picker/simple_month_year_picker.dart';
-import 'package:task_app/data/utils/travel_items_list.dart';
+import 'package:task_app/data/travel_items_list.dart';
 import 'package:task_app/presentation/widgets/my_search_anchor.dart';
 import 'package:task_app/service/supabase_post_service.dart';
 

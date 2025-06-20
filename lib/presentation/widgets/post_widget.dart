@@ -1,6 +1,7 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:task_app/models/post_model.dart';
+import 'package:task_app/presentation/screens/comment_screen.dart';
 import 'package:task_app/presentation/widgets/facebook_photo_collage.dart';
 import 'package:task_app/service/shared_preference_service.dart';
 
@@ -16,18 +17,76 @@ class PostWidget extends StatefulWidget {
 }
 
 class _PostWidgetState extends State<PostWidget> {
+  final TextEditingController _commentController = TextEditingController();
   bool _isLiked = false;
-
   int _likesCount = 0;
-
+  int _commentsCount = 0;
   String? _userName;
   String? _userImage;
+
+  bool _inProgress = false;
 
   @override
   void initState() {
     super.initState();
     _getUserData();
     _thePostIsLiked();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _commentController.dispose();
+  }
+
+  Future<void> _onSendComment() async {
+    if (_commentController.text.isEmpty) {
+      return;
+    }
+
+    String? userID = await SharedPreferenceService().getUserId();
+
+    DateTime dateTime = DateTime.now();
+
+    _inProgress = true;
+    setState(() {});
+    await supaBase.from('comments').insert({
+      'body': _commentController.text,
+      'user_id': userID ?? '',
+      'replies': [],
+      'upload_time': '${dateTime.day} / ${dateTime.month} / ${dateTime.year}',
+      'likes': [],
+      'post_id': widget.postModel.id,
+      'comments_id': '',
+    });
+
+    final commentsData = await supaBase
+        .from('comments')
+        .select()
+        .eq('post_id', widget.postModel.id)
+        .single();
+
+    String commentID = commentsData['id'];
+
+    final postData = await supaBase
+        .from('posts')
+        .select()
+        .eq('id', widget.postModel.id)
+        .single();
+
+    List<String> commentsList = List<String>.from(postData['comments'] ?? []);
+    debugPrint("$commentsList");
+
+    commentsList.add(commentID);
+    _commentsCount = commentsList.length;
+    debugPrint("$commentsList");
+    await supaBase
+        .from('posts')
+        .update({'comments': List<String>.from(commentsList)})
+        .eq('id', widget.postModel.id);
+
+    _inProgress = false;
+    setState(() {});
   }
 
   Future<void> _thePostIsLiked() async {
@@ -45,6 +104,7 @@ class _PostWidgetState extends State<PostWidget> {
       List<String> likesList = List<String>.from(postData['likes'] ?? []);
 
       _likesCount = List<String>.from(postData['likes'] ?? []).length;
+      _commentsCount = List<String>.from(postData['comments'] ?? []).length;
 
       if (likesList.contains(userID)) {
         _isLiked = true;
@@ -85,7 +145,7 @@ class _PostWidgetState extends State<PostWidget> {
         debugPrint("When Unliked: $likesList");
         await supaBase
             .from('posts')
-            .update({'likes': likesList})
+            .update({'likes': List<String>.from(likesList)})
             .eq('id', widget.postModel.id);
         setState(() {});
       } else {
@@ -95,7 +155,7 @@ class _PostWidgetState extends State<PostWidget> {
         debugPrint("When Liked: $likesList");
         await supaBase
             .from('posts')
-            .update({'likes': likesList})
+            .update({'likes': List<String>.from(likesList)})
             .eq('id', widget.postModel.id);
         setState(() {});
       }
@@ -223,9 +283,7 @@ class _PostWidgetState extends State<PostWidget> {
             fontSize: 16,
           ),
         ),
-        widget.postModel.images.isEmpty
-            ? SizedBox()
-            : widget.postModel.images.length > 5
+        widget.postModel.images.length > 5
             ? FacebookPhotoCollage(
                 imageUrls: [
                   for (int i = 0; i < 5; i++) widget.postModel.images[i],
@@ -242,7 +300,29 @@ class _PostWidgetState extends State<PostWidget> {
           children: [
             Text("$_likesCount Like", style: TextStyle(fontSize: 20)),
             Icon(Icons.circle, size: 4, color: Colors.grey),
-            Text("30 Comments", style: TextStyle(fontSize: 20)),
+            GestureDetector(
+              onTap: () async {
+                final data = await supaBase
+                    .from('posts')
+                    .select()
+                    .eq('id', widget.postModel.id)
+                    .single();
+                if (mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CommentScreen(
+                        commentsID: List<String>.from(data['comments']),
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                "$_commentsCount Comments",
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
           ],
         ),
       ],
@@ -280,9 +360,10 @@ class _PostWidgetState extends State<PostWidget> {
         Row(
           spacing: 8,
           children: [
-            CircleAvatar(),
+            CircleAvatar(backgroundImage: NetworkImage(_userImage ?? "")),
             Expanded(
               child: TextField(
+                controller: _commentController,
                 decoration: InputDecoration(
                   hintText: "Write Your Comment",
                   contentPadding: EdgeInsets.symmetric(horizontal: 16),
@@ -290,7 +371,14 @@ class _PostWidgetState extends State<PostWidget> {
                 cursorColor: Colors.black,
               ),
             ),
-            IconButton(onPressed: () {}, icon: Icon(Icons.send, size: 28)),
+            Visibility(
+              visible: !_inProgress,
+              replacement: CircularProgressIndicator(),
+              child: IconButton(
+                onPressed: _onSendComment,
+                icon: Icon(Icons.send, size: 28),
+              ),
+            ),
           ],
         ),
       ],
