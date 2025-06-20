@@ -2,6 +2,7 @@ import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:task_app/models/post_model.dart';
 import 'package:task_app/presentation/screens/comment_screen.dart';
+import 'package:task_app/presentation/screens/photo_screen.dart';
 import 'package:task_app/presentation/widgets/facebook_photo_collage.dart';
 import 'package:task_app/service/shared_preference_service.dart';
 
@@ -284,16 +285,42 @@ class _PostWidgetState extends State<PostWidget> {
           ),
         ),
         widget.postModel.images.length > 5
-            ? FacebookPhotoCollage(
-                imageUrls: [
-                  for (int i = 0; i < 5; i++) widget.postModel.images[i],
-                ],
+            ? GestureDetector(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PhotoScreen(imageUrls: widget.postModel.images),
+                    ),
+                  );
+                  _getUserData();
+                  _thePostIsLiked();
+                },
+                child: FacebookPhotoCollage(
+                  imageUrls: [
+                    for (int i = 0; i < 5; i++) widget.postModel.images[i],
+                  ],
+                ),
               )
-            : FacebookPhotoCollage(
-                imageUrls: [
-                  for (int i = 0; i < widget.postModel.images.length; i++)
-                    widget.postModel.images[i],
-                ],
+            : GestureDetector(
+                onTap: () async{
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PhotoScreen(imageUrls: widget.postModel.images),
+                    ),
+                  );
+                  _getUserData();
+                  _thePostIsLiked();
+                },
+                child: FacebookPhotoCollage(
+                  imageUrls: [
+                    for (int i = 0; i < widget.postModel.images.length; i++)
+                      widget.postModel.images[i],
+                  ],
+                ),
               ),
         Row(
           spacing: 16,

@@ -8,7 +8,7 @@ class FacebookPhotoCollage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) {
-      return const SizedBox();
+      return SizedBox();
     }
 
     if (imageUrls.length == 1) {
@@ -72,10 +72,7 @@ class FacebookPhotoCollage extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: AspectRatio(
-            aspectRatio: 1, // Square for simplicity, adjust as needed
-            child: _buildImage(imageUrls[0]),
-          ),
+          child: AspectRatio(aspectRatio: 1, child: _buildImage(imageUrls[0])),
         ),
         const SizedBox(width: 4),
         Expanded(
@@ -88,10 +85,7 @@ class FacebookPhotoCollage extends StatelessWidget {
   Widget _buildThreeImages(List<String> imageUrls) {
     return Column(
       children: [
-        AspectRatio(
-          aspectRatio: 16 / 9, // Top image takes more space
-          child: _buildImage(imageUrls[0]),
-        ),
+        AspectRatio(aspectRatio: 16 / 9, child: _buildImage(imageUrls[0])),
         const SizedBox(height: 4),
         Row(
           children: [
