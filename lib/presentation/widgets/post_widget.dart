@@ -2,6 +2,7 @@ import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:task_app/models/post_model.dart';
 import 'package:task_app/presentation/widgets/facebook_photo_collage.dart';
+import 'package:task_app/service/shared_preference_service.dart';
 
 import '../../main.dart';
 
@@ -17,6 +18,8 @@ class PostWidget extends StatefulWidget {
 class _PostWidgetState extends State<PostWidget> {
   bool _isLiked = false;
 
+  int _likesCount = 0;
+
   String? _userName;
   String? _userImage;
 
@@ -24,18 +27,98 @@ class _PostWidgetState extends State<PostWidget> {
   void initState() {
     super.initState();
     _getUserData();
+    _thePostIsLiked();
+  }
+
+  Future<void> _thePostIsLiked() async {
+    SharedPreferenceService sharedPreferenceService = SharedPreferenceService();
+
+    String? userID = await sharedPreferenceService.getUserId();
+
+    try {
+      final postData = await supaBase
+          .from('posts')
+          .select()
+          .eq('id', widget.postModel.id)
+          .single();
+
+      List<String> likesList = List<String>.from(postData['likes'] ?? []);
+
+      _likesCount = List<String>.from(postData['likes'] ?? []).length;
+
+      if (likesList.contains(userID)) {
+        _isLiked = true;
+      } else {
+        _isLiked = false;
+      }
+
+      setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+    }
+  }
+
+  Future<void> _onTapLiked() async {
+    SharedPreferenceService sharedPreferenceService = SharedPreferenceService();
+
+    String? userID = await sharedPreferenceService.getUserId();
+
+    try {
+      final postData = await supaBase
+          .from('posts')
+          .select()
+          .eq('id', widget.postModel.id)
+          .single();
+
+      List<String> likesList = List<String>.from(postData['likes'] ?? []);
+      debugPrint("$likesList");
+
+      if (_isLiked) {
+        _isLiked = false;
+        likesList.remove(userID);
+        _likesCount = likesList.length;
+        debugPrint("When Unliked: $likesList");
+        await supaBase
+            .from('posts')
+            .update({'likes': likesList})
+            .eq('id', widget.postModel.id);
+        setState(() {});
+      } else {
+        _isLiked = true;
+        likesList.add(userID ?? " ");
+        _likesCount = likesList.length;
+        debugPrint("When Liked: $likesList");
+        await supaBase
+            .from('posts')
+            .update({'likes': likesList})
+            .eq('id', widget.postModel.id);
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+    }
   }
 
   Future<void> _getUserData() async {
     String postId = widget.postModel.id;
 
-    final postData = await supaBase.from('posts').select().eq('id', postId);
+    final postData = await supaBase
+        .from('posts')
+        .select()
+        .eq('id', postId)
+        .single();
 
-    String userId = '';
-
-    for (var data in postData) {
-      userId = data["user_id"];
-    }
+    String userId = postData['user_id'];
 
     final userData = await supaBase.from('user_list').select().eq('id', userId);
 
@@ -78,11 +161,9 @@ class _PostWidgetState extends State<PostWidget> {
         Spacer(),
         Row(
           children: [
-            for (int i = 4; i >= 0; i--)
+            for (int i = 0; i < 5; i++)
               Icon(
-                5 - widget.postModel.ratings <= i
-                    ? Icons.star
-                    : Icons.star_outline,
+                widget.postModel.ratings > i ? Icons.star : Icons.star_outline,
                 color: Colors.yellow,
                 size: 24,
               ),
@@ -142,13 +223,24 @@ class _PostWidgetState extends State<PostWidget> {
             fontSize: 16,
           ),
         ),
-        FacebookPhotoCollage(
-          imageUrls: [for (int i = 0; i < 5; i++) widget.postModel.images[i]],
-        ),
+        widget.postModel.images.isEmpty
+            ? SizedBox()
+            : widget.postModel.images.length > 5
+            ? FacebookPhotoCollage(
+                imageUrls: [
+                  for (int i = 0; i < 5; i++) widget.postModel.images[i],
+                ],
+              )
+            : FacebookPhotoCollage(
+                imageUrls: [
+                  for (int i = 0; i < widget.postModel.images.length; i++)
+                    widget.postModel.images[i],
+                ],
+              ),
         Row(
           spacing: 16,
           children: [
-            Text("30 Like", style: TextStyle(fontSize: 20)),
+            Text("$_likesCount Like", style: TextStyle(fontSize: 20)),
             Icon(Icons.circle, size: 4, color: Colors.grey),
             Text("30 Comments", style: TextStyle(fontSize: 20)),
           ],
@@ -164,19 +256,13 @@ class _PostWidgetState extends State<PostWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _isLiked = !_isLiked;
-                });
-              },
+              onPressed: _onTapLiked,
               label: Text(
                 "Like",
                 style: TextStyle(fontSize: 20, color: Colors.black),
               ),
               icon: Icon(
-                _isLiked
-                    ? Icons.favorite_outlined
-                    : Icons.favorite_border_outlined,
+                _isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
                 color: Colors.black,
                 size: 20,
               ),

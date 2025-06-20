@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class FacebookPhotoCollage extends StatelessWidget {
@@ -26,7 +25,13 @@ class FacebookPhotoCollage extends StatelessWidget {
   }
 
   // Modified _buildImage to use CachedNetworkImage
-  Widget _buildImage(String imageUrl, {double? width, double? height, BoxFit? fit, Widget? overlay}) {
+  Widget _buildImage(
+    String imageUrl, {
+    double? width,
+    double? height,
+    BoxFit? fit,
+    Widget? overlay,
+  }) {
     return Container(
       width: width,
       height: height,
@@ -39,11 +44,13 @@ class FacebookPhotoCollage extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: CachedNetworkImage( // Use CachedNetworkImage for network URLs
-              imageUrl: imageUrl,
+            child: Image.network(
+              imageUrl,
               fit: fit ?? BoxFit.cover,
-              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(child: CircularProgressIndicator());
+              },
             ),
           ),
           if (overlay != null) overlay,
@@ -70,10 +77,7 @@ class FacebookPhotoCollage extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Expanded(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: _buildImage(imageUrls[1]),
-          ),
+          child: AspectRatio(aspectRatio: 1, child: _buildImage(imageUrls[1])),
         ),
       ],
     );

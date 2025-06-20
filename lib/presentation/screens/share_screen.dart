@@ -263,15 +263,16 @@ class _ShareScreenState extends State<ShareScreen> {
                 Row(
                   spacing: 2,
                   children: [
-                    for (int i = 4; i >= 0; i--)
+                    for (int i = 0; i < 5; i++)
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            _currentRate = i;
+                            _currentRate = i + 1;
+                            debugPrint("$_currentRate");
                           });
                         },
                         child: Icon(
-                          _currentRate <= i ? Icons.star : Icons.star_outline,
+                          _currentRate > i ? Icons.star : Icons.star_outline,
                           color: Colors.yellow,
                           size: 24,
                         ),
