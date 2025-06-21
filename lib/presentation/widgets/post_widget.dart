@@ -45,49 +45,54 @@ class _PostWidgetState extends State<PostWidget> {
       return;
     }
 
-    String? userID = await SharedPreferenceService().getUserId();
+    try {
+      String? userID = await SharedPreferenceService().getUserId();
 
-    DateTime dateTime = DateTime.now();
+      DateTime dateTime = DateTime.now();
 
-    _inProgress = true;
-    setState(() {});
-    await supaBase.from('comments').insert({
-      'body': _commentController.text,
-      'user_id': userID ?? '',
-      'replies': [],
-      'upload_time': '${dateTime.day} / ${dateTime.month} / ${dateTime.year}',
-      'likes': [],
-      'post_id': widget.postModel.id,
-      'comments_id': '',
-    });
+      _inProgress = true;
+      setState(() {});
+      final commentsData = await supaBase.from('comments').insert({
+        'body': _commentController.text,
+        'user_id': userID ?? '',
+        'upload_time': '${dateTime.day} / ${dateTime.month} / ${dateTime.year}',
+        'likes': [],
+        'post_id': widget.postModel.id,
+      });
 
-    final commentsData = await supaBase
-        .from('comments')
-        .select()
-        .eq('post_id', widget.postModel.id)
-        .single();
+      debugPrint("New comment id: ${commentsData['id']}");
 
-    String commentID = commentsData['id'];
+      String commentID = commentsData['id'];
 
-    final postData = await supaBase
-        .from('posts')
-        .select()
-        .eq('id', widget.postModel.id)
-        .single();
+      final postData = await supaBase
+          .from('posts')
+          .select()
+          .eq('id', widget.postModel.id)
+          .single();
 
-    List<String> commentsList = List<String>.from(postData['comments'] ?? []);
-    debugPrint("$commentsList");
+      List<String> commentsList = List<String>.from(postData['comments'] ?? []);
+      debugPrint("$commentsList");
 
-    commentsList.add(commentID);
-    _commentsCount = commentsList.length;
-    debugPrint("$commentsList");
-    await supaBase
-        .from('posts')
-        .update({'comments': List<String>.from(commentsList)})
-        .eq('id', widget.postModel.id);
+      commentsList.add(commentID);
+      _commentsCount = commentsList.length;
+      debugPrint("$commentsList");
+      await supaBase
+          .from('posts')
+          .update({'comments': commentsList})
+          .eq('id', widget.postModel.id);
 
-    _inProgress = false;
-    setState(() {});
+      _inProgress = false;
+      setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Something went wrong")));
+      }
+      _inProgress = false;
+      setState(() {});
+    }
   }
 
   Future<void> _thePostIsLiked() async {
@@ -304,7 +309,7 @@ class _PostWidgetState extends State<PostWidget> {
                 ),
               )
             : GestureDetector(
-                onTap: () async{
+                onTap: () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(

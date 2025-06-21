@@ -85,7 +85,7 @@ class _FeedScreenState extends State<FeedScreen> {
     return SliverAppBar(
       expandedHeight: 300,
       pinned: false,
-      floating: false,
+      floating: true,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         background: Column(

@@ -90,6 +90,7 @@ class SupabasePostService {
         .select();
 
     for (Map<String, dynamic> post in data) {
+      debugPrint("Post ID: ${post['id']}");
       listOfPostWidget.add(
         PostWidget(
           postModel: PostModel(
